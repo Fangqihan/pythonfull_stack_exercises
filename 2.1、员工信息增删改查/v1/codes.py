@@ -29,15 +29,19 @@ def save_db(**kwargs):
                 f.write(line)
                 f.flush()
                 lines_count += 1
+        return lines_count
 
     # add
     if kwargs.get('temp',''):
         temp = kwargs.get('temp', '')
-        lines_count = 0
         with open('info_save.txt', 'a') as f:
             line = str(','.join([str(i) for i in list(temp.values())]) + '\n')
             f.write(line)
             f.flush()
+            lines_count+=1
+        return lines_count
+
+    return 0
 
 
 def load_db():
@@ -91,34 +95,41 @@ def process_data(**kwargs):
     return lines_count
 
 
+def update_(com):
+    pass
+
+
 def find_(com):
-    """根据com命令查询出相匹配的记录行数目
+    """
     find name,age from staff_table where age > 22
     find * from staff_table where dept = "IT"
     find * from staff_table where enroll_date like "2013"
     """
     ret_data = load_db()
+
     lines_count = 0
+    # 1、解析出关键字
     search_key, search_val, operator = extract(com)
+
+    # 2、根据操作符号对数据进行匹配，并返回受影响行数
     if operator == 'like':
         for item in ret_data:
             if str(search_val) in item[search_key].lower():
                 lines_count += 1
                 continue
         return lines_count
-    for item in ret_data:
-        if operator == '=':
-            com = '%s %s %s' % (item[search_key], '==', search_val)
-        else:
-            com = '%s %s %s' % (item[search_key], operator, search_val)
-        if not eval(com):
-            continue
-        lines_count += 1
-    return lines_count
 
+    elif operator in ['=','>','<']:
+        for item in ret_data:
+            if operator == '=':
+                com = '%s %s %s' % (item[search_key], '==', search_val)
+            else:
+                com = '%s %s %s' % (item[search_key], operator, search_val)
+                if not eval(com):
+                    continue
+            lines_count += 1
 
-def update_(com):
-    pass
+        return lines_count
 
 
 def delete_(com):
@@ -129,7 +140,6 @@ def delete_(com):
 def add(com):
     """ add staff_table Alex Li,25,134435344,IT,2015‐10‐29"""
     ret_data = load_db()
-    lines_count = 0
     info = com.split(' ',2)[2].split(',')
     try:
         temp = {}
@@ -139,11 +149,9 @@ def add(com):
         temp['phone'] = info[2]
         temp['dept'] = info[3]
         temp['date'] = info[4]
-        save_db(temp=temp)
-        return lines_count
+        return save_db(temp=temp)
     except Exception as e:
         print(e)
-    return lines_count
 
 
 if __name__ == '__main__':
