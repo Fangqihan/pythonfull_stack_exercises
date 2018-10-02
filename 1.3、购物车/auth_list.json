@@ -1,0 +1,1 @@
+[{"username": "alex", "password": "abc123", "status": 0, "shopping_history": ["mac_pro", "mac_air"], "balance": 16000}, {"username": "kate", "password": "abc123", "status": 0, "shopping_history": [], "balance": 24000}, {"username": "bob", "password": "abc123", "status": 0, "shopping_history": [], "balance": 19000}]
