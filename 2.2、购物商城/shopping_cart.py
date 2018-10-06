@@ -26,113 +26,111 @@ goods = [
 """
 
 goods_list = [
-    {'number':'001',"name": "mac_pro", "price": 12000},
-    {'number':'002',"name": "mac_air", "price": 6000},
-    {'number':'003',"name": "mouse", "price": 120},
-    {'number':'004',"name": "headset", "price": 200},
-    {'number':'005',"name": "keyboard", "price": 300},
+    {'number': '001', "name": "mac_pro", "price": 12000},
+    {'number': '002', "name": "mac_air", "price": 6000},
+    {'number': '003', "name": "mouse", "price": 120},
+    {'number': '004', "name": "headset", "price": 200},
+    {'number': '005', "name": "keyboard", "price": 300},
 ]
 
-
 import json
-with open('goods.json','w') as f:
+
+with open('goods.json', 'w') as f:
     f.write(json.dumps(goods_list))
 
 
 def auth(func):
     """装饰器 用户认证"""
+
     def inner():
         username_err_count = 0
         pwd_error_count = 0
         flag = True
-        with open('auth_list.json','r') as f:
-            auth_list = json.loads(f.read(),encoding='gbk')
+        with open('auth_list.json', 'r') as f:
+            auth_list = json.loads(f.read(), encoding='gbk')
         while flag:
-            if username_err_count>=3:exit('用户名输入次数过多')
+            if username_err_count >= 3: exit('用户名输入次数过多')
             username = input('username >>> ').strip().lower()
-            if not username : continue  # 都不能为空
+            if not username: continue  # 都不能为空
             for item in auth_list:
-                if item.get('username','') == username:
-                    if item.get('status')==1:
+                if item.get('username', '') == username:
+                    if item.get('status') == 1:
                         exit('对不起，账户< %s >以被锁定，请前往网点解锁！' % username)
 
                     while True:
-                        if pwd_error_count >=3:
-                            item['status']=1
-                            with open('auth_list.json','w') as f:
+                        if pwd_error_count >= 3:
+                            item['status'] = 1
+                            with open('auth_list.json', 'w') as f:
                                 f.write(json.dumps(auth_list))
                             exit('密码输入次数过多，账户被锁定，请前往相关网点解锁！')
 
                         pwd = input('password >>> ').strip()
-                        if pwd == item.get('password',''):
-                            print('欢迎登录，%s' %  username)
-                            cart_history = item.get('shopping_history','')
-                            balance = item.get('balance','')
-                            func(cart_history=cart_history,balance=balance,username=username)
+                        if pwd == item.get('password', ''):
+                            print('欢迎登录，%s' % username)
+                            cart_history = item.get('shopping_history', '')
+                            balance = item.get('balance', '')
+                            func(cart_history=cart_history, balance=balance, username=username)
                             return
-                        pwd_error_count +=1
-            username_err_count +=1
+                        pwd_error_count += 1
+            username_err_count += 1
         print('输入次数过多,请稍后再尝试！')
+
     return inner
 
 
 def goods_display():
-    print('NUMBER'.ljust(10),'NAME'.ljust(15),'PRICE'.ljust(10))
+    """展示商品信息"""
+    print('NUMBER'.ljust(10), 'NAME'.ljust(15), 'PRICE'.ljust(10))
     for item in goods_list:
-        print(item['number'].ljust(10),item['name'].ljust(15),str(item['price']).ljust(10))
+        print(item['number'].ljust(10), item['name'].ljust(15), str(item['price']).ljust(10))
 
 
 def save(**kwargs):
+    """保存用户信息到数据库"""
     username = kwargs.get('username')
     cart_history = kwargs.get('cart_history')
     balance = kwargs.get('balance')
-    with open('auth_list.json','r') as f:
+    with open('auth_list.json', 'r') as f:
         auth_list = json.loads(f.read())
         for item in auth_list:
             if item['username'] == username:
                 item['balance'] = balance
                 item['shopping_history'] = cart_history
 
-    with open('auth_list.json','w') as f:
+    with open('auth_list.json', 'w') as f:
         f.write(json.dumps(auth_list))
 
 
 @auth
 def shopping_cart(**kwargs):
-    cart_history = kwargs.get('cart_history')
+    """购物主逻辑"""
+    cart_history = kwargs.get('cart_history')  # 1、取出当前用户的相关信息>>>
     balance = kwargs.get('balance')
-    username=kwargs.get('username')
-    # print(cart_history, balance, username)
-
-    goods_display()
+    username = kwargs.get('username')
+    print(cart_history, balance, username)
+    goods_display()  # 商品展示
     flag = True
     while flag:
-        choose = input('>>> ').strip()
+        choose = input('>>> ').strip()  # 开始购物>>>
         for item in goods_list:
             if item['number'] == choose:
-                if balance<item['price']:
+                if balance < item['price']:
                     print('余额不足！')
+                    #
                     continue
+
                 cart_history.append(item['name'])
                 balance = balance - item['price']
 
-        if choose.lower()=='q':
-            save(username=username,cart_history=cart_history,balance=balance)
-            exit('您的余额<\033[1;35m %s \033[0m>,已购商品<\033[1;35m %s \033[0m>!'%(balance,'、'.join(cart_history)))
+        if choose.lower() == 'q':
+            save(username=username, cart_history=cart_history, balance=balance)
+            exit('您的余额<\033[1;35m %s \033[0m>,已购商品<\033[1;35m %s \033[0m>!' % (balance, '、'.join(cart_history)))
 
         elif choose.lower() == 'info':
-            print('您的余额<\033[1;35m %s \033[0m>,已购商品<\033[1;35m %s \033[0m>'%(balance,'、'.join(cart_history)))
+            print('您的余额<\033[1;35m %s \033[0m>,已购商品<\033[1;35m %s \033[0m>' % (balance, '、'.join(cart_history)))
 
 
 if __name__ == '__main__':
     shopping_cart()
-
-
-
-
-
-
-
-
 
 
